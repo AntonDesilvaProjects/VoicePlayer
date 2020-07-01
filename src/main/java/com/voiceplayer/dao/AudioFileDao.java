@@ -1,5 +1,10 @@
 package com.voiceplayer.dao;
 
-public class AudioFileDao {
+import com.voiceplayer.domain.AudioFile;
+import com.voiceplayer.domain.AudioFileResponse;
+import com.voiceplayer.domain.AudioFileSearchParams;
 
+public interface AudioFileDao {
+    AudioFile get(String id);
+    AudioFileResponse search(AudioFileSearchParams params);
 }
