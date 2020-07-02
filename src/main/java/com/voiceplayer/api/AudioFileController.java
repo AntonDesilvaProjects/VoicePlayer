@@ -1,5 +1,6 @@
 package com.voiceplayer.api;
 
+import com.voiceplayer.domain.AudioFileSearchParams;
 import com.voiceplayer.service.AudioPlayerService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,7 +19,7 @@ public class AudioFileController {
 
     @GetMapping("/list")
     public List<String> listFiles() {
-        audioPlayerService.search(null);
+        audioPlayerService.search(new AudioFileSearchParams.AudioFileSearchBuilder().withQuery("name contains 'based on'").build());
         return null;
     }
 }

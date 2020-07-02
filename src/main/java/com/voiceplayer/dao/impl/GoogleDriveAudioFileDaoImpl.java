@@ -11,6 +11,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  *  DAO implementation responsible for interfacing with Google Drive to access users audio
@@ -38,9 +39,15 @@ public class GoogleDriveAudioFileDaoImpl implements AudioFileDao {
         final HttpHeaders headers = buildHeaders("Authorization", "Bearer ");
         final String apiEndpoint = GOOGLE_DRIVE_V3_ENDPOINT + "/files";
 
-        ResponseEntity<String> response = restTemplate.exchange(apiEndpoint, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+        final String url = UriComponentsBuilder
+                .fromHttpUrl(apiEndpoint)
+                .queryParam("q",params.getQuery())
+                .build()
+                .toUriString();
 
-        return null;
+        ResponseEntity<AudioFileResponse> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), AudioFileResponse.class);
+
+        return response.getBody();
     }
 
     private HttpHeaders buildHeaders(String... headers) {
