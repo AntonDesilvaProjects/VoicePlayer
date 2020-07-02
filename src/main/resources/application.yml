@@ -1,2 +1,6 @@
 server:
   port: 3000
+google:
+  drive:
+    credential-config-path: ''
+    endpoint: 'https://www.googleapis.com/drive/v3'
