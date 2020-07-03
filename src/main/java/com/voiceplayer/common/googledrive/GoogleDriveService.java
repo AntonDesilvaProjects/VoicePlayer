@@ -1,4 +1,4 @@
-package com.voiceplayer.dao.impl;
+package com.voiceplayer.common;
 
 import com.voiceplayer.dao.AudioFileDao;
 import com.voiceplayer.domain.AudioFile;
@@ -18,22 +18,20 @@ import org.springframework.web.util.UriComponentsBuilder;
  *  files
  * */
 @Repository
-public class GoogleDriveAudioFileDaoImpl implements AudioFileDao {
+public class GoogleDriveService {
 
     private final RestTemplate restTemplate;
     private final String GOOGLE_DRIVE_V3_ENDPOINT;
 
-    public GoogleDriveAudioFileDaoImpl(RestTemplate restTemplate, @Value("${google.drive.endpoint}") String googleDriveAPIEndpoint) {
+    public GoogleDriveService(RestTemplate restTemplate, @Value("${google.drive.endpoint}") String googleDriveAPIEndpoint) {
         this.restTemplate = restTemplate;
         this.GOOGLE_DRIVE_V3_ENDPOINT = googleDriveAPIEndpoint;
     }
 
-    @Override
     public AudioFile get(String id) {
         return null;
     }
 
-    @Override
     public AudioFileResponse search(AudioFileSearchParams params) {
         // build the search request
         final HttpHeaders headers = buildHeaders("Authorization", "Bearer ");
@@ -41,7 +39,7 @@ public class GoogleDriveAudioFileDaoImpl implements AudioFileDao {
 
         final String url = UriComponentsBuilder
                 .fromHttpUrl(apiEndpoint)
-                .queryParam("q",params.getQuery())
+                .queryParam("q", params.getQuery())
                 .build()
                 .toUriString();
 

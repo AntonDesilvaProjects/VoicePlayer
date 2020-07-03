@@ -1,4 +1,6 @@
-package com.voiceplayer.domain;
+package com.voiceplayer.common.googledrive.model;
+
+import com.voiceplayer.common.googledrive.model.AudioFile;
 
 import java.util.List;
 

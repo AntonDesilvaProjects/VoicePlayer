@@ -1,4 +1,4 @@
-package com.voiceplayer.domain;
+package com.voiceplayer.common.googledrive.model;
 
 /**
  * https://developers.google.com/drive/api/v3/ref-search-terms

@@ -1,4 +1,4 @@
-package com.voiceplayer.domain;
+package com.voiceplayer.common.googledrive.model;
 
 public class AudioFile {
     private String kind;
