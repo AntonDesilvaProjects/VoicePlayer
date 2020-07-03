@@ -1,10 +1,10 @@
 package com.voiceplayer.dao;
 
-import com.voiceplayer.domain.AudioFile;
-import com.voiceplayer.domain.AudioFileResponse;
-import com.voiceplayer.domain.AudioFileSearchParams;
+import com.voiceplayer.common.googledrive.model.File;
+import com.voiceplayer.common.googledrive.model.FileListResponse;
+import com.voiceplayer.common.googledrive.model.SearchParams;
 
 public interface AudioFileDao {
-    AudioFile get(String id);
-    AudioFileResponse search(AudioFileSearchParams params);
+    File get(String id);
+    FileListResponse search(SearchParams params);
 }

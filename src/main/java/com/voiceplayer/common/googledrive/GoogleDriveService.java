@@ -1,17 +1,16 @@
-package com.voiceplayer.common;
+package com.voiceplayer.common.googledrive;
 
-import com.voiceplayer.dao.AudioFileDao;
-import com.voiceplayer.domain.AudioFile;
-import com.voiceplayer.domain.AudioFileResponse;
-import com.voiceplayer.domain.AudioFileSearchParams;
+import com.voiceplayer.common.googledrive.model.*;
+import com.voiceplayer.utils.ApplicationUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.util.Properties;
 
 /**
  *  DAO implementation responsible for interfacing with Google Drive to access users audio
@@ -22,19 +21,43 @@ public class GoogleDriveService {
 
     private final RestTemplate restTemplate;
     private final String GOOGLE_DRIVE_V3_ENDPOINT;
+    private final String GOOGLE_OAUTH2_ENDPOINT;
+    private final String CREDENTIALS_PATH;
 
-    public GoogleDriveService(RestTemplate restTemplate, @Value("${google.drive.endpoint}") String googleDriveAPIEndpoint) {
+    private Properties credentials = null;
+
+    public GoogleDriveService(RestTemplate restTemplate,
+                              @Value("${google.drive.endpoint}") String googleDriveAPIEndpoint,
+                              @Value("${google.oauth2-endpoint}") String googleOAuth2Endpoint,
+                              @Value("${google.credential-config-path}") String googleCredentialConfigPath) {
         this.restTemplate = restTemplate;
         this.GOOGLE_DRIVE_V3_ENDPOINT = googleDriveAPIEndpoint;
+        this.GOOGLE_OAUTH2_ENDPOINT = googleOAuth2Endpoint;
+        this.CREDENTIALS_PATH = googleCredentialConfigPath;
     }
 
-    public AudioFile get(String id) {
+    public File get(String id) {
         return null;
     }
 
-    public AudioFileResponse search(AudioFileSearchParams params) {
+    public ListResponse list(SearchParams params) {
+        if (params == null || params.getEntityType() == null) {
+            throw new IllegalArgumentException("Entity type required for listing entities!");
+        }
+        ListResponse response = null;
+        switch (params.getEntityType()) {
+            case FILE:
+                response = listFiles(params);
+                break;
+            default:
+                throw new UnsupportedOperationException("Entity type not supported at this time");
+        }
         // build the search request
-        final HttpHeaders headers = buildHeaders("Authorization", "Bearer ");
+        return response;
+    }
+
+    private FileListResponse listFiles(SearchParams params) {
+        final HttpHeaders headers = buildHeaders("Authorization", "Bearer " + getAccessToken());
         final String apiEndpoint = GOOGLE_DRIVE_V3_ENDPOINT + "/files";
 
         final String url = UriComponentsBuilder
@@ -43,7 +66,7 @@ public class GoogleDriveService {
                 .build()
                 .toUriString();
 
-        ResponseEntity<AudioFileResponse> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), AudioFileResponse.class);
+        ResponseEntity<FileListResponse> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), FileListResponse.class);
 
         return response.getBody();
     }
@@ -57,5 +80,29 @@ public class GoogleDriveService {
             httpHeaders.add(headers[i], headers[i+1]);
         }
         return httpHeaders;
+    }
+
+    private String getAccessToken() {
+        // load and cache credentials if not already done
+        if (credentials == null) {
+            credentials = ApplicationUtils.loadPropertiesFile(CREDENTIALS_PATH);
+        }
+        // use credentials to get an access token
+        return getAccessToken(credentials.getProperty("clientId"), credentials.getProperty("clientSecret"), credentials.getProperty("refreshToken")).getAccessToken();
+    }
+
+    public Token getAccessToken(final String clientId, final String clientSecret, final String refreshToken) {
+        final String refreshTokenEndpoint = GOOGLE_OAUTH2_ENDPOINT + "/token";
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("client_id", clientId);
+        formData.add("client_secret", clientSecret);
+        formData.add("refresh_token", refreshToken);
+        formData.add("grant_type", "refresh_token");
+
+        final HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        final HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(formData, headers);
+        final ResponseEntity<Token> response = restTemplate.exchange(refreshTokenEndpoint, HttpMethod.POST, request, Token.class);
+        return response.getBody();
     }
 }

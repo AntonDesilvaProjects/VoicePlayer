@@ -4,13 +4,15 @@ package com.voiceplayer.common.googledrive.model;
  * https://developers.google.com/drive/api/v3/ref-search-terms
  * https://developers.google.com/drive/api/v3/search-files
  * */
-public class AudioFileSearchParams {
+public class SearchParams {
     private String query;
     private String spaces;
     private String pageToken;
     private String fieldsQuery;
+    private EntityType entityType;
 
-    private AudioFileSearchParams(String query, String spaces, String pageToken, String fieldsQuery) {
+    private SearchParams(EntityType entityType, String query, String spaces, String pageToken, String fieldsQuery) {
+        this.entityType = entityType;
         this.query = query;
         this.spaces = spaces;
         this.pageToken = pageToken;
@@ -22,6 +24,7 @@ public class AudioFileSearchParams {
         private String spaces;
         private String pageToken;
         private String fieldsQuery;
+        private EntityType entityType;
 
         public AudioFileSearchBuilder withQuery(String query) {
             this.query = query;
@@ -39,8 +42,12 @@ public class AudioFileSearchParams {
             this.fieldsQuery = fieldsQuery;
             return this;
         }
-        public AudioFileSearchParams build() {
-            return new AudioFileSearchParams(query, spaces, pageToken, fieldsQuery);
+        public AudioFileSearchBuilder forEntityType(EntityType entityType) {
+            this.entityType = entityType;
+            return this;
+        }
+        public SearchParams build() {
+            return new SearchParams(entityType, query, spaces, pageToken, fieldsQuery);
         }
     }
 
@@ -58,5 +65,9 @@ public class AudioFileSearchParams {
 
     public String getFieldsQuery() {
         return fieldsQuery;
+    }
+
+    public EntityType getEntityType() {
+        return entityType;
     }
 }

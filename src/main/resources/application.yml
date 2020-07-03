@@ -1,6 +1,7 @@
 server:
   port: 3000
 google:
+  oauth2-endpoint: 'https://oauth2.googleapis.com'
+  credential-config-path: 'credentials/credentials.properties'
   drive:
-    credential-config-path: ''
     endpoint: 'https://www.googleapis.com/drive/v3'

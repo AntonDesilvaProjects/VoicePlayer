@@ -1,6 +1,6 @@
 package com.voiceplayer.common.googledrive.model;
 
-public class AudioFile {
+public class File {
     private String kind;
     private String id;
     private String name;

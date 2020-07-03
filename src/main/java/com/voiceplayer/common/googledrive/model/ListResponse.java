@@ -1,14 +1,10 @@
 package com.voiceplayer.common.googledrive.model;
 
-import com.voiceplayer.common.googledrive.model.AudioFile;
-
-import java.util.List;
-
-public class AudioFileResponse {
+public class ListResponse {
     private String kind;
     private String nextPageToken;
     private boolean incompleteSearch;
-    private List<AudioFile> files;
+    private Error error;
 
     public String getKind() {
         return kind;
@@ -34,11 +30,12 @@ public class AudioFileResponse {
         this.incompleteSearch = incompleteSearch;
     }
 
-    public List<AudioFile> getFiles() {
-        return files;
+    public Error getError() {
+        return error;
     }
 
-    public void setFiles(List<AudioFile> files) {
-        this.files = files;
+    public ListResponse setError(Error error) {
+        this.error = error;
+        return this;
     }
 }
