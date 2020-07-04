@@ -2,6 +2,8 @@ package com.voiceplayer.common.googledrive;
 
 import com.voiceplayer.common.googledrive.model.*;
 import com.voiceplayer.utils.ApplicationUtils;
+import org.apache.commons.lang3.NotImplementedException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Repository;
@@ -13,31 +15,29 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.Properties;
 
 /**
- *  DAO implementation responsible for interfacing with Google Drive to access users audio
+ *  Service implementation responsible for interfacing with Google Drive to access users audio
  *  files
  * */
 @Repository
 public class GoogleDriveService {
 
+    private final Properties credentials;
     private final RestTemplate restTemplate;
     private final String GOOGLE_DRIVE_V3_ENDPOINT;
     private final String GOOGLE_OAUTH2_ENDPOINT;
-    private final String CREDENTIALS_PATH;
-
-    private Properties credentials = null;
 
     public GoogleDriveService(RestTemplate restTemplate,
+                              @Qualifier("credentials") Properties credentials,
                               @Value("${google.drive.endpoint}") String googleDriveAPIEndpoint,
-                              @Value("${google.oauth2-endpoint}") String googleOAuth2Endpoint,
-                              @Value("${google.credential-config-path}") String googleCredentialConfigPath) {
+                              @Value("${google.oauth2-endpoint}") String googleOAuth2Endpoint) {
         this.restTemplate = restTemplate;
+        this.credentials = credentials;
         this.GOOGLE_DRIVE_V3_ENDPOINT = googleDriveAPIEndpoint;
         this.GOOGLE_OAUTH2_ENDPOINT = googleOAuth2Endpoint;
-        this.CREDENTIALS_PATH = googleCredentialConfigPath;
     }
 
     public File get(String id) {
-        return null;
+        throw new NotImplementedException();
     }
 
     public ListResponse list(SearchParams params) {
@@ -83,12 +83,10 @@ public class GoogleDriveService {
     }
 
     private String getAccessToken() {
-        // load and cache credentials if not already done
-        if (credentials == null) {
-            credentials = ApplicationUtils.loadPropertiesFile(CREDENTIALS_PATH);
-        }
         // use credentials to get an access token
-        return getAccessToken(credentials.getProperty("clientId"), credentials.getProperty("clientSecret"), credentials.getProperty("refreshToken")).getAccessToken();
+        return getAccessToken(credentials.getProperty("google.clientId"),
+                credentials.getProperty("google.clientSecret"),
+                credentials.getProperty("google.refreshToken")).getAccessToken();
     }
 
     public Token getAccessToken(final String clientId, final String clientSecret, final String refreshToken) {
