@@ -1,4 +1,4 @@
-package com.voiceplayer.domain;
+package com.voiceplayer.model;
 
 public class VoiceResponse {
 }

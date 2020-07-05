@@ -28,7 +28,7 @@ public class GoogleDriveService {
 
     public GoogleDriveService(RestTemplate restTemplate,
                               @Qualifier("credentials") Properties credentials,
-                              @Value("${google.drive.endpoint}") String googleDriveAPIEndpoint,
+                              @Value("${google.drive.api.endpoint}") String googleDriveAPIEndpoint,
                               @Value("${google.oauth2-endpoint}") String googleOAuth2Endpoint) {
         this.restTemplate = restTemplate;
         this.credentials = credentials;
@@ -57,7 +57,7 @@ public class GoogleDriveService {
     }
 
     private FileListResponse listFiles(SearchParams params) {
-        final HttpHeaders headers = buildHeaders("Authorization", "Bearer " + getAccessToken());
+        final HttpHeaders headers = ApplicationUtils.buildHeaders("Authorization", "Bearer " + getAccessToken());
         final String apiEndpoint = GOOGLE_DRIVE_V3_ENDPOINT + "/files";
 
         final String url = UriComponentsBuilder
@@ -69,17 +69,6 @@ public class GoogleDriveService {
         ResponseEntity<FileListResponse> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), FileListResponse.class);
 
         return response.getBody();
-    }
-
-    private HttpHeaders buildHeaders(String... headers) {
-        if (headers.length == 0 || headers.length % 2 != 0) {
-            throw new IllegalArgumentException("Invalid headers!");
-        }
-        HttpHeaders httpHeaders = new HttpHeaders();
-        for (int i = 0; i < headers.length; i = i + 2) {
-            httpHeaders.add(headers[i], headers[i+1]);
-        }
-        return httpHeaders;
     }
 
     private String getAccessToken() {

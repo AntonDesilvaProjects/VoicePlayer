@@ -4,4 +4,9 @@ google:
   oauth2-endpoint: 'https://oauth2.googleapis.com'
   credential-config-path: 'credentials/credentials.properties'
   drive:
-    endpoint: 'https://www.googleapis.com/drive/v3'
+    api:
+      endpoint: 'https://www.googleapis.com/drive/v3'
+witai:
+  api:
+    version: '20200513'
+    endpoint: 'https://api.wit.ai'

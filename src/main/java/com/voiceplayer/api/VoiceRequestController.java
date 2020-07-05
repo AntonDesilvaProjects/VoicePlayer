@@ -1,11 +1,11 @@
 package com.voiceplayer.api;
 
-import com.voiceplayer.domain.VoiceRequest;
-import com.voiceplayer.domain.VoiceResponse;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.voiceplayer.common.witai.WitAIService;
+import com.voiceplayer.common.witai.model.IntentResolutionResponse;
+import com.voiceplayer.model.VoiceRequest;
+import com.voiceplayer.model.VoiceResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/voice")
@@ -38,6 +38,13 @@ public class VoiceRequestController {
     @PostMapping
     public VoiceResponse executeVoiceCommand(@RequestBody VoiceRequest request) {
         return null;
+    }
+
+    @Autowired
+    WitAIService witAIService;
+    @GetMapping
+    public IntentResolutionResponse test() {
+        return witAIService.resolveIntent("Play rain by Jesse Cooke");
     }
 
 }
