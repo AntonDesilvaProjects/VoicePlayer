@@ -10,3 +10,5 @@ witai:
   api:
     version: '20200513'
     endpoint: 'https://api.wit.ai'
+intent:
+  config: 'intent/IntentConfiguration.json'
