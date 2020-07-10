@@ -4,11 +4,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.voiceplayer.common.witai.model.IntentResolutionResponse;
+import com.voiceplayer.exception.UnexpectedIntentException;
+import com.voiceplayer.exception.IntentException;
 import com.voiceplayer.intent.IntentHandler;
+import com.voiceplayer.model.IntentActionRequest;
+import com.voiceplayer.model.IntentActionResponse;
 import com.voiceplayer.model.IntentEntityMapping;
 import com.voiceplayer.utils.ApplicationUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -39,8 +44,21 @@ public class IntentHandlerService {
         return mappings.stream().collect(Collectors.toMap(IntentEntityMapping::getIntentName, Function.identity()));
     }
 
-    public void handleIntent(IntentResolutionResponse intentResolutionResponse) {
-        // find the intent
-        // invoke the method with appropriate metadata
+    public IntentActionResponse handleIntent(final IntentResolutionResponse intentResolutionResponse) throws IntentException {
+        IntentActionResponse response;
+        if (CollectionUtils.isEmpty(intentResolutionResponse.getIntents()) || intentResolutionResponse.getIntents().size() > 1) {
+            throw new UnexpectedIntentException();
+        }
+        final String intent = intentResolutionResponse.getIntents().get(0).getName();
+        final IntentHandler handler = intentHandlers.get(intent);
+        if (handler == null) {
+            throw new UnexpectedIntentException();
+        }
+        final IntentEntityMapping mapping = intentEntityMappings.get(intent);
+        final IntentActionRequest request = new IntentActionRequest();
+        request.setIntentEntityMapping(mapping);
+        request.setIntentResolutionResponse(intentResolutionResponse);
+        response = handler.handleIntent(request);
+        return response;
     }
 }

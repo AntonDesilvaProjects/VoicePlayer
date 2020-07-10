@@ -4,6 +4,7 @@ import com.voiceplayer.common.witai.WitAIService;
 import com.voiceplayer.common.witai.model.IntentResolutionResponse;
 import com.voiceplayer.model.VoiceRequest;
 import com.voiceplayer.model.VoiceResponse;
+import com.voiceplayer.service.ConversationService;
 import com.voiceplayer.service.IntentResolutionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +12,12 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/voice")
 public class VoiceRequestController {
+
+    private final ConversationService conversationService;
+
+    public VoiceRequestController(@Autowired ConversationService conversationService) {
+        this.conversationService = conversationService;
+    }
 
     /**
      *  VoiceRequest => Intent Resolution[WIT service] => Service/DAO layers => VoiceResponse
@@ -33,12 +40,10 @@ public class VoiceRequestController {
      *      Find more than one match -
      *          n < 5 - dictate the list to the user
      *          n >= 5 - "too many results. Please try again"
-     *
-     *
      * */
     @PostMapping
     public VoiceResponse executeVoiceCommand(@RequestBody VoiceRequest request) {
-        return null;
+        return conversationService.handle(request);
     }
 
     @Autowired
