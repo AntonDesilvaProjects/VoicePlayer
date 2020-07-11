@@ -1,14 +1,22 @@
 package com.voiceplayer.common.witai.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.voiceplayer.common.witai.model.entities.Entity;
+import org.apache.commons.collections4.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class IntentResolutionResponse {
     private String text;
     private List<Intent> intents;
     private JsonNode entities;
     private JsonNode traits;
+
+    private List<Entity> entityList;
+    private Map<String, List<Entity>> entityRoleToEntitiesMap;
 
     public String getText() {
         return text;
@@ -44,5 +52,22 @@ public class IntentResolutionResponse {
     public IntentResolutionResponse setTraits(JsonNode traits) {
         this.traits = traits;
         return this;
+    }
+
+    public List<Entity> getEntityList() {
+        return entityList;
+    }
+
+    public IntentResolutionResponse setEntityList(List<Entity> entityList) {
+        this.entityList = entityList;
+        if (CollectionUtils.isNotEmpty(entityList)) {
+            this.entityRoleToEntitiesMap = entityList.stream()
+                    .collect(Collectors.groupingBy(Entity::getFullName, Collectors.toList()));
+        }
+        return this;
+    }
+
+    public List<Entity> getEntitiesByNameAndRole(String entityNameRole) {
+        return new ArrayList<>(entityRoleToEntitiesMap.get(entityNameRole));
     }
 }

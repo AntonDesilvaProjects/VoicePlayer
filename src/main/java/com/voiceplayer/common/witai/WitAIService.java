@@ -3,11 +3,8 @@ package com.voiceplayer.common.witai;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableMap;
-import com.voiceplayer.common.witai.model.entities.Contact;
-import com.voiceplayer.common.witai.model.entities.Duration;
-import com.voiceplayer.common.witai.model.entities.Entity;
+import com.voiceplayer.common.witai.model.entities.*;
 import com.voiceplayer.common.witai.model.IntentResolutionResponse;
-import com.voiceplayer.common.witai.model.entities.SearchQuery;
 import com.voiceplayer.utils.ApplicationUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,9 +17,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
+import java.lang.Number;
+import java.util.*;
 
 @Service
 public class WitAIService {
@@ -55,8 +51,10 @@ public class WitAIService {
                 .queryParam("q", text)
                 .build()
                 .toUriString();
-        final ResponseEntity<IntentResolutionResponse> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), IntentResolutionResponse.class);
-
+        ResponseEntity<IntentResolutionResponse> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), IntentResolutionResponse.class);
+        final IntentResolutionResponse intentResolutionResponse = response.getBody();
+        // parse the entities
+        intentResolutionResponse.setEntityList(extractEntities(intentResolutionResponse.getEntities()));
         return response.getBody();
     }
 
@@ -76,9 +74,31 @@ public class WitAIService {
         if (node != null) {
             try {
                 entityList = reader.readValue(node);
+                entityList.forEach(e -> e.setFullName(entityRoleName));
             } catch (IOException e) {
                 throw new IllegalArgumentException("Unable to parse the entity!", e);
             }
+        }
+        return entityList;
+    }
+
+    /**
+     * Given a JsonNode consisting of entities, extract the entities.
+     * @param entitiesNode JsonNode consisting of entities from Wit AI
+     * */
+    public List<Entity> extractEntities(JsonNode entitiesNode) {
+        Iterator<String> entityNames = entitiesNode.fieldNames();
+        List<Entity> entityList = new ArrayList<>();
+        while (entityNames.hasNext()) {
+            // the name will be in the format wit?entity-name:role for standard entities
+            // and custom-name:role for custom entities
+            String entityNameRole = entityNames.next();
+            String searchName = entityNameRole.substring(0, entityNameRole.indexOf(':')).replace("$", "/");
+            Class clazz = Optional.ofNullable(StandardEntity
+                    .findUsing(e -> e.getName().equals(searchName)))
+                    .map(StandardEntity::getClazz)
+                    .orElse(Entity.class);
+            entityList.addAll(extractEntities(entitiesNode, entityNameRole, clazz));
         }
         return entityList;
     }
