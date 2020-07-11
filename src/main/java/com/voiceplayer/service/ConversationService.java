@@ -19,14 +19,18 @@ public class ConversationService {
     }
 
     public VoiceResponse handle(VoiceRequest request) {
-        final IntentResolutionResponse intentResolutionResponse = intentResolutionService.resolveIntent(request.toString());
+        final IntentResolutionResponse intent = intentResolutionService.resolveIntent(request.toString());
         IntentActionResponse actionResponse;
+        // attempts to action the user intent
         try {
-            actionResponse = intentHandlerService.handleIntent(intentResolutionResponse);
+            actionResponse = intentHandlerService.handle(intent);
         } catch (IntentException v) {
+            // any exception thrown should be caught and converted to appropriate conversational
+            // responses that can be voiced
             actionResponse = handleException(v);
         }
-        return null;
+        // build a Voice response from the action resposne
+        return new VoiceResponse<IntentActionResponse>().setResult(actionResponse);
     }
 
     private IntentActionResponse handleException(IntentException exception) {

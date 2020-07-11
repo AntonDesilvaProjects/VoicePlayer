@@ -2,6 +2,9 @@ package com.voiceplayer.common.witai;
 
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.collect.ImmutableMap;
+import com.voiceplayer.common.witai.model.entities.Contact;
+import com.voiceplayer.common.witai.model.entities.Duration;
 import com.voiceplayer.common.witai.model.entities.Entity;
 import com.voiceplayer.common.witai.model.IntentResolutionResponse;
 import com.voiceplayer.common.witai.model.entities.SearchQuery;
@@ -18,6 +21,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 @Service
@@ -26,6 +30,12 @@ public class WitAIService {
     private final RestTemplate restTemplate;
     private final String WIT_AI_ENDPOINT;
     private final String WIT_AI_VERSION;
+
+    public static final Map<String, Class> STANDARD_ENTITY_TO_MODEL_CLASS_MAP = ImmutableMap.of(
+            "wit$contact", Contact.class,
+            "wit$duration", Duration.class,
+            "wit$number", Number.class,
+            "wit$search_query", SearchQuery.class);
 
     public WitAIService(@Qualifier("credentials") Properties credentials, RestTemplate restTemplate,
                         @Value("${witai.api.endpoint}")String witAiEndpoint,
@@ -46,7 +56,7 @@ public class WitAIService {
                 .build()
                 .toUriString();
         final ResponseEntity<IntentResolutionResponse> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), IntentResolutionResponse.class);
-        extractEntities(response.getBody().getEntities(), "wit$contact:contact", SearchQuery.class);
+
         return response.getBody();
     }
 

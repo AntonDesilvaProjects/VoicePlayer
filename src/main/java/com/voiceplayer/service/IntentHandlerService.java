@@ -2,8 +2,10 @@ package com.voiceplayer.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.voiceplayer.common.witai.model.IntentResolutionResponse;
+import com.voiceplayer.common.witai.model.entities.Entity;
 import com.voiceplayer.exception.UnexpectedIntentException;
 import com.voiceplayer.exception.IntentException;
 import com.voiceplayer.intent.IntentHandler;
@@ -44,7 +46,10 @@ public class IntentHandlerService {
         return mappings.stream().collect(Collectors.toMap(IntentEntityMapping::getIntentName, Function.identity()));
     }
 
-    public IntentActionResponse handleIntent(final IntentResolutionResponse intentResolutionResponse) throws IntentException {
+    /**
+     *  Delegates the handling of the passed intent to the appropriate handler and returns the result
+     * */
+    public IntentActionResponse handle(final IntentResolutionResponse intentResolutionResponse) throws IntentException {
         IntentActionResponse response;
         if (CollectionUtils.isEmpty(intentResolutionResponse.getIntents()) || intentResolutionResponse.getIntents().size() > 1) {
             throw new UnexpectedIntentException();
@@ -55,10 +60,10 @@ public class IntentHandlerService {
             throw new UnexpectedIntentException();
         }
         final IntentEntityMapping mapping = intentEntityMappings.get(intent);
-        final IntentActionRequest request = new IntentActionRequest();
-        request.setIntentEntityMapping(mapping);
-        request.setIntentResolutionResponse(intentResolutionResponse);
-        response = handler.handleIntent(request);
-        return response;
+        final IntentActionRequest request = new IntentActionRequest.builder()
+                .withIntentEntityMapping(mapping)
+                .withIntentResolutionResponse(intentResolutionResponse)
+                .build();
+        return handler.handleIntent(request);
     }
 }

@@ -61,4 +61,10 @@ public class Duration extends Entity {
         this.additionalValues = additionalValues;
         return this;
     }
+
+    @Override
+    public String getStandardEntityName() {
+        return "wit/duration";
+    }
+
 }

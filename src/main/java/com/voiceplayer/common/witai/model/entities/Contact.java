@@ -11,4 +11,9 @@ public class Contact extends Entity {
         this.suggested = suggested;
         return this;
     }
+
+    @Override
+    public String getStandardEntityName() {
+        return "wit/contact";
+    }
 }

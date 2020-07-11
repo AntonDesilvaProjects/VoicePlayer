@@ -108,4 +108,13 @@ public class Entity {
         this.type = type;
         return this;
     }
+
+    /**
+     *  For entities provided by WitAI, returns the standard entity name.
+     *
+     *  @return String standard entity name from WitAI or null for custom entities
+     * */
+    public String getStandardEntityName() {
+        return null;
+    }
 }
