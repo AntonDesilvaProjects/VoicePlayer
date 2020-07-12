@@ -33,7 +33,7 @@ public class VoiceRequestController {
 
     @GetMapping
     public IntentResolutionResponse test() {
-        return witAIService.resolveIntent("Play rain by Jesse Cooke");
+        return witAIService.resolveIntent("Play rain by Jesse Cooke at half speed");
     }
 
 }

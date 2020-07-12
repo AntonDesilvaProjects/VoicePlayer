@@ -96,7 +96,7 @@ public class WitAIService {
             // the name will be in the format wit?entity-name:role for standard entities
             // and custom-name:role for custom entities
             String entityNameRole = entityNames.next();
-            String searchName = entityNameRole.substring(0, entityNameRole.indexOf(':')).replace("$", "/");
+            String searchName = entityNameRole.substring(0, entityNameRole.indexOf(':'));
             Class clazz = Optional.ofNullable(StandardEntity
                     .findUsing(e -> e.getName().equals(searchName)))
                     .map(StandardEntity::getClazz)

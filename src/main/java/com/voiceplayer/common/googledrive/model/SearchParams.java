@@ -19,30 +19,30 @@ public class SearchParams {
         this.fieldsQuery = fieldsQuery;
     }
 
-    public static class AudioFileSearchBuilder {
+    public static class Builder {
         private String query;
         private String spaces;
         private String pageToken;
         private String fieldsQuery;
         private EntityType entityType;
 
-        public AudioFileSearchBuilder withQuery(String query) {
+        public Builder withQuery(String query) {
             this.query = query;
             return this;
         }
-        public AudioFileSearchBuilder inSpaces(String spaces) {
+        public Builder inSpaces(String spaces) {
             this.spaces = spaces;
             return this;
         }
-        public AudioFileSearchBuilder inPage(String pageToken) {
+        public Builder inPage(String pageToken) {
             this.pageToken = pageToken;
             return this;
         }
-        public AudioFileSearchBuilder withFields(String fieldsQuery) {
+        public Builder withFields(String fieldsQuery) {
             this.fieldsQuery = fieldsQuery;
             return this;
         }
-        public AudioFileSearchBuilder forEntityType(EntityType entityType) {
+        public Builder forEntityType(EntityType entityType) {
             this.entityType = entityType;
             return this;
         }

@@ -4,10 +4,10 @@ import java.util.Arrays;
 import java.util.function.Predicate;
 
 public enum StandardEntity {
-    CONTACT("wit/contact", Contact.class),
-    DURATION("wit/duration", Duration.class),
-    NUMBER("wit/number", Number.class),
-    SEARCH_QUERY("wit/search_query", SearchQuery.class);
+    CONTACT("wit$contact", Contact.class),
+    DURATION("wit$duration", Duration.class),
+    NUMBER("wit$number", Number.class),
+    SEARCH_QUERY("wit$search_query", SearchQuery.class);
 
     private String name;
     private Class clazz;

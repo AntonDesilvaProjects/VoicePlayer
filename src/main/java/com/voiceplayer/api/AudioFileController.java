@@ -19,7 +19,7 @@ public class AudioFileController {
 
     @GetMapping("/list")
     public FileListResponse listFiles() {
-        return audioPlayerService.search(new SearchParams.AudioFileSearchBuilder()
+        return audioPlayerService.search(new SearchParams.Builder()
                 .withQuery("name contains 'based on'")
                 .forEntityType(EntityType.FILE).build());
     }

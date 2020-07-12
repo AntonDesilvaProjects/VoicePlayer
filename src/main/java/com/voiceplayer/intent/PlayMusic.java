@@ -38,9 +38,9 @@ import java.util.Set;
  * */
 @Component("play_music")
 public class PlayMusic extends AbstractIntentHandler implements IntentHandler {
-    private static final String AUDIO_SQ_ENTITY_NAME = "wit";
-    private static final String ARTIST_CONTACT_ENTITY_NAME = "";
-    private static final String ARTIST_SQ_ENTITY_NAME = "";
+    private static final String AUDIO_SQ_ENTITY_NAME = "wit$search_query:audio";
+    private static final String ARTIST_CONTACT_ENTITY_NAME = "wit$contact:contact";
+    private static final String ARTIST_SQ_ENTITY_NAME = "wit$search_query:";
 
     private final AudioPlayerService audioPlayerService;
 
@@ -65,7 +65,7 @@ public class PlayMusic extends AbstractIntentHandler implements IntentHandler {
             // build a search query for file name by artist
             // find file
             FileListResponse fileListResponse = audioPlayerService.search(new SearchParams
-                    .AudioFileSearchBuilder()
+                    .Builder()
                     .withQuery("")
                     .build());
             
