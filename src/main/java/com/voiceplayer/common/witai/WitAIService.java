@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.ImmutableMap;
 import com.voiceplayer.common.witai.model.entities.*;
 import com.voiceplayer.common.witai.model.IntentResolutionResponse;
+import com.voiceplayer.common.witai.model.entities.Number;
 import com.voiceplayer.utils.ApplicationUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +18,6 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
-import java.lang.Number;
 import java.util.*;
 
 @Service
@@ -33,9 +33,10 @@ public class WitAIService {
             "wit$number", Number.class,
             "wit$search_query", SearchQuery.class);
 
-    public WitAIService(@Qualifier("credentials") Properties credentials, RestTemplate restTemplate,
-                        @Value("${witai.api.endpoint}")String witAiEndpoint,
-                        @Value("${witai.api.version}")String version) {
+    public WitAIService(@Qualifier("credentials") Properties credentials,
+                        @Value("${witai.api.endpoint}") String witAiEndpoint,
+                        @Value("${witai.api.version}") String version,
+                        RestTemplate restTemplate) {
         this.credentials = credentials;
         this.restTemplate = restTemplate;
         this.WIT_AI_ENDPOINT = witAiEndpoint;
@@ -53,9 +54,11 @@ public class WitAIService {
                 .toUriString();
         ResponseEntity<IntentResolutionResponse> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), IntentResolutionResponse.class);
         final IntentResolutionResponse intentResolutionResponse = response.getBody();
-        // parse the entities
-        intentResolutionResponse.setEntityList(extractEntities(intentResolutionResponse.getEntities()));
-        return response.getBody();
+        if (intentResolutionResponse != null) {
+            // parse the entities
+            intentResolutionResponse.setEntityList(extractEntities(intentResolutionResponse.getEntities()));
+        }
+        return intentResolutionResponse;
     }
 
     /**

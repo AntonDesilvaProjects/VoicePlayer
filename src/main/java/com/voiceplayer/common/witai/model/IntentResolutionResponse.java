@@ -5,6 +5,7 @@ import com.voiceplayer.common.witai.model.entities.Entity;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -16,7 +17,7 @@ public class IntentResolutionResponse {
     private JsonNode traits;
 
     private List<Entity> entityList;
-    private Map<String, List<Entity>> entityRoleToEntitiesMap;
+    private Map<String, List<Entity>> entityRoleToEntitiesMap = new HashMap<>();
 
     public String getText() {
         return text;
@@ -60,6 +61,7 @@ public class IntentResolutionResponse {
 
     public IntentResolutionResponse setEntityList(List<Entity> entityList) {
         this.entityList = entityList;
+        this.entityRoleToEntitiesMap = new HashMap<>();
         if (CollectionUtils.isNotEmpty(entityList)) {
             this.entityRoleToEntitiesMap = entityList.stream()
                     .collect(Collectors.groupingBy(Entity::getFullName, Collectors.toList()));

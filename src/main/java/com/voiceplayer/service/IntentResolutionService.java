@@ -2,17 +2,14 @@ package com.voiceplayer.service;
 
 import com.voiceplayer.common.witai.WitAIService;
 import com.voiceplayer.common.witai.model.IntentResolutionResponse;
-import com.voiceplayer.model.VoiceRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 
 @Service
 public class IntentResolutionService {
 
     final WitAIService witAIService;
 
-    public IntentResolutionService(@Autowired WitAIService witAIService) {
+    public IntentResolutionService(WitAIService witAIService) {
         this.witAIService = witAIService;
     }
 
