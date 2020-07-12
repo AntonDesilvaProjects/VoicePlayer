@@ -6,13 +6,19 @@ import com.voiceplayer.common.witai.model.IntentResolutionResponse;
 import com.voiceplayer.common.witai.model.entities.Entity;
 import com.voiceplayer.common.witai.model.entities.SearchQuery;
 import com.voiceplayer.exception.IntentException;
+import com.voiceplayer.model.AudioFile;
+import com.voiceplayer.model.AudioFileSearchParams;
 import com.voiceplayer.model.IntentActionRequest;
 import com.voiceplayer.model.IntentActionResponse;
 import com.voiceplayer.service.AudioPlayerService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  *  VoiceRequest => Intent Resolution[WIT service] => Service/DAO layers => VoiceResponse
@@ -39,8 +45,8 @@ import java.util.Set;
 @Component("play_music")
 public class PlayMusic extends AbstractIntentHandler implements IntentHandler {
     private static final String AUDIO_SQ_ENTITY_NAME = "wit$search_query:audio";
+    private static final String ARTIST_SQ_ENTITY_NAME = "wit$search_query:artist";
     private static final String ARTIST_CONTACT_ENTITY_NAME = "wit$contact:contact";
-    private static final String ARTIST_SQ_ENTITY_NAME = "wit$search_query:";
 
     private final AudioPlayerService audioPlayerService;
 
@@ -58,16 +64,18 @@ public class PlayMusic extends AbstractIntentHandler implements IntentHandler {
             }
             final IntentResolutionResponse intentResolution = intentActionRequest.getIntentResolutionResponse();
 
+            // we will get the first for each type of entity
             final SearchQuery audioFileEntity = (SearchQuery) intentResolution.getEntitiesByNameAndRole(AUDIO_SQ_ENTITY_NAME).get(0);
             final Entity contactEntity = intentResolution.getEntitiesByNameAndRole(ARTIST_CONTACT_ENTITY_NAME).get(0);
             final Entity artistEntity = intentResolution.getEntitiesByNameAndRole(ARTIST_SQ_ENTITY_NAME).get(0);
 
-            // build a search query for file name by artist
             // find file
-            FileListResponse fileListResponse = audioPlayerService.search(new SearchParams
-                    .Builder()
-                    .withQuery("")
-                    .build());
+            List<AudioFile> searchResults = audioPlayerService.search(new AudioFileSearchParams()
+                    .setFileName(audioFileEntity.getValue())
+                    .setArtists(Stream.of(contactEntity, artistEntity)
+                            .filter(Objects::nonNull)
+                            .map(Entity::getValue)
+                            .collect(Collectors.toSet())));
             
             // add other meta data to the response
 

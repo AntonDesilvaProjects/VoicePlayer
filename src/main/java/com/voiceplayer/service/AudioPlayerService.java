@@ -1,19 +1,10 @@
 package com.voiceplayer.service;
 
-import com.voiceplayer.common.googledrive.model.FileListResponse;
-import com.voiceplayer.dao.AudioFileDao;
-import com.voiceplayer.common.googledrive.model.SearchParams;
-import org.springframework.stereotype.Service;
+import com.voiceplayer.model.AudioFile;
+import com.voiceplayer.model.AudioFileSearchParams;
 
-@Service
-public class AudioPlayerService {
-    private final AudioFileDao audioFileDao;
+import java.util.List;
 
-    public AudioPlayerService(AudioFileDao audioFileDao) {
-        this.audioFileDao = audioFileDao;
-    }
-
-    public FileListResponse search(SearchParams params) {
-        return audioFileDao.search(params);
-    }
+public interface AudioPlayerService {
+   List<AudioFile> search(AudioFileSearchParams params);
 }

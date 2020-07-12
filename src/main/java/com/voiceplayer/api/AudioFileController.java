@@ -3,7 +3,7 @@ package com.voiceplayer.api;
 import com.voiceplayer.common.googledrive.model.EntityType;
 import com.voiceplayer.common.googledrive.model.FileListResponse;
 import com.voiceplayer.common.googledrive.model.SearchParams;
-import com.voiceplayer.service.AudioPlayerService;
+import com.voiceplayer.dao.AudioFileDao;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/files")
 public class AudioFileController {
-    private final AudioPlayerService audioPlayerService;
+    private final AudioFileDao audioPlayerService;
 
-    public AudioFileController(AudioPlayerService audioPlayerService) {
+    public AudioFileController(AudioFileDao audioPlayerService) {
         this.audioPlayerService = audioPlayerService;
     }
 
