@@ -1,7 +1,5 @@
 package com.voiceplayer.intent;
 
-import com.voiceplayer.common.googledrive.model.FileListResponse;
-import com.voiceplayer.common.googledrive.model.SearchParams;
 import com.voiceplayer.common.witai.model.IntentResolutionResponse;
 import com.voiceplayer.common.witai.model.entities.Entity;
 import com.voiceplayer.common.witai.model.entities.SearchQuery;
@@ -76,7 +74,20 @@ public class PlayMusic extends AbstractIntentHandler implements IntentHandler {
                             .filter(Objects::nonNull)
                             .map(Entity::getValue)
                             .collect(Collectors.toSet())));
-            
+
+            if (CollectionUtils.isEmpty(searchResults)) {
+                throw new IntentException("Unable to find the requested track. Please try again.");
+            } else if (searchResults.size() > 5) {
+                throw new IntentException(String.format("Found %s results. Please try to be more specific.", searchResults.size()));
+            } else if (searchResults.size() > 1) {
+                // recite the audio file list to the user
+                final String message = "Found the following tracks:" + searchResults.stream().map(AudioFile::getName).collect(Collectors.joining(",")) + ". " +
+                        "Please repeat your selection";
+                throw new IntentException(message);
+            }
+
+            // we have exactly one track - download it and provide a link for the
+            // client to download and play it
             // add other meta data to the response
 
         } catch (IntentException i) {

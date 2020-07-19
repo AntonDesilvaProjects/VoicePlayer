@@ -3,6 +3,7 @@ package com.voiceplayer.common.googledrive;
 import com.voiceplayer.common.googledrive.model.*;
 import com.voiceplayer.utils.ApplicationUtils;
 import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -60,12 +61,18 @@ public class GoogleDriveService {
         final HttpHeaders headers = ApplicationUtils.buildHeaders("Authorization", "Bearer " + getAccessToken());
         final String apiEndpoint = GOOGLE_DRIVE_V3_ENDPOINT + "/files";
 
-        final String url = UriComponentsBuilder
-                .fromHttpUrl(apiEndpoint)
-                .queryParam("q", params.getQuery())
-                .build()
-                .toUriString();
+        final UriComponentsBuilder uriBuilder = UriComponentsBuilder
+                .fromHttpUrl(apiEndpoint);
+        // add query params
+        if (StringUtils.isEmpty(params.getQuery())) {
+            throw new IllegalArgumentException("Query must be specified");
+        }
+        uriBuilder.queryParam("q", params.getQuery());
+        if (StringUtils.isNotEmpty(params.getFieldsQuery())) {
+            uriBuilder.queryParam("fields", params.getFieldsQuery());
+        }
 
+        final String url = uriBuilder.build().toUriString();
         ResponseEntity<FileListResponse> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), FileListResponse.class);
 
         return response.getBody();

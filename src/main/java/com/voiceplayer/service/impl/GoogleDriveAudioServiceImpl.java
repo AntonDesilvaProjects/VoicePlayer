@@ -1,5 +1,6 @@
 package com.voiceplayer.service.impl;
 
+import com.google.common.collect.Lists;
 import com.voiceplayer.common.googledrive.model.EntityType;
 import com.voiceplayer.common.googledrive.model.FileListResponse;
 import com.voiceplayer.common.googledrive.model.SearchParams;
@@ -28,18 +29,27 @@ public class GoogleDriveAudioServiceImpl implements AudioPlayerService {
     @Override
     public List<AudioFile> search(AudioFileSearchParams params) {
         FileListResponse fileListResponse = audioFileDao.search(buildSearchParams(params));
-        return new ArrayList<>();
+        return Optional.ofNullable(fileListResponse.getFiles())
+                .orElse(Lists.newArrayList())
+                .stream()
+                .map(AudioFile::from)
+                .collect(Collectors.toList());
     }
 
+    /**
+     *  Converts the passed in AudioFileSearchParms object to SearchParams that can be used
+     *  by Google Drive Service
+     * */
     private SearchParams buildSearchParams(AudioFileSearchParams params) {
-        final StringBuilder queryBuilder = new StringBuilder();
-        queryBuilder.append("name contains ").append(params.getFileName());
-        // we are also including the artist name as part of the file name although this isn't
-        // necessarily true - it will work most of the time
+        final StringBuilder queryBuilder = new StringBuilder("mimeType contains 'audio'");
+        queryBuilder.append(" and ");
+        queryBuilder.append("name contains '").append(params.getFileName()).append("'");
+        // we are also including the artist name as part of the file name as most music files
+        // typical have this
         final String artists = Optional.ofNullable(params.getArtists())
                 .orElse(new HashSet<>())
                 .stream()
-                .map(artistName -> String.format(" name contains %s ", artistName))
+                .map(artistName -> String.format(" name contains '%s' ", artistName))
                 .collect(Collectors.joining(" or "));
 
         if (StringUtils.isNotEmpty(artists)) {
