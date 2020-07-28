@@ -4,12 +4,10 @@ import com.voiceplayer.common.witai.model.IntentResolutionResponse;
 import com.voiceplayer.common.witai.model.entities.Entity;
 import com.voiceplayer.common.witai.model.entities.SearchQuery;
 import com.voiceplayer.exception.IntentException;
-import com.voiceplayer.model.AudioFile;
-import com.voiceplayer.model.AudioFileSearchParams;
-import com.voiceplayer.model.IntentActionRequest;
-import com.voiceplayer.model.IntentActionResponse;
+import com.voiceplayer.model.*;
 import com.voiceplayer.service.AudioPlayerService;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -41,10 +39,12 @@ import java.util.stream.Stream;
  *          n >= 5 - "too many results. Please try again"
  * */
 @Component("play_music")
-public class PlayMusic extends AbstractIntentHandler implements IntentHandler {
+public class PlayMusic extends AbstractIntentHandler<PlayMusicResponse> {
     private static final String AUDIO_SQ_ENTITY_NAME = "wit$search_query:audio";
     private static final String ARTIST_SQ_ENTITY_NAME = "wit$search_query:artist";
     private static final String ARTIST_CONTACT_ENTITY_NAME = "wit$contact:contact";
+    private static final String SPEED_ENTITY_NAME = "speed:speed";
+    private static final String SPEED_SQ_ENTITY_NAME = "wit$search_query:free_text_speed";
 
     private final AudioPlayerService audioPlayerService;
 
@@ -53,8 +53,8 @@ public class PlayMusic extends AbstractIntentHandler implements IntentHandler {
     }
 
     @Override
-    public IntentActionResponse handleIntent(IntentActionRequest intentActionRequest) {
-        IntentActionResponse response = new IntentActionResponse();
+    public IntentActionResponse<PlayMusicResponse> handleIntent(IntentActionRequest intentActionRequest) {
+        IntentActionResponse<PlayMusicResponse> response = new IntentActionResponse<>();
         try {
             Set<String> missingEntities = getMissingRequiredEntities(intentActionRequest);
             if (CollectionUtils.isNotEmpty(missingEntities)) {
@@ -81,18 +81,36 @@ public class PlayMusic extends AbstractIntentHandler implements IntentHandler {
                 throw new IntentException(String.format("Found %s results. Please try to be more specific.", searchResults.size()));
             } else if (searchResults.size() > 1) {
                 // recite the audio file list to the user
-                final String message = "Found the following tracks:" + searchResults.stream().map(AudioFile::getName).collect(Collectors.joining(",")) + ". " +
-                        "Please repeat your selection";
-                throw new IntentException(message);
+                throw new IntentException(String.format("Found the following tracks: %s. Please repeat your selection.",
+                        searchResults.stream().map(AudioFile::getName).collect(Collectors.joining(","))));
             }
 
-            // we have exactly one track - download it and provide a link for the
-            // client to download and play it
-            // add other meta data to the response
+            // get any additional metadata
+            // for speed we have two possible entities
+            final SearchQuery speedSQEntity = (SearchQuery) intentResolution.getEntitiesByNameAndRole(SPEED_SQ_ENTITY_NAME).get(0);
+            final Entity speedEntity =  intentResolution.getEntitiesByNameAndRole(SPEED_ENTITY_NAME).get(0);
+            final String speed = StringUtils.isEmpty(speedEntity.getValue()) ? speedSQEntity.getValue() : speedEntity.getValue();
 
+            response.setSuccessful(true);
+            response.setResponse(
+                    new PlayMusicResponse()
+                    .setAudioFile(searchResults.get(0))
+                    .setSpeed(resolveAudioSpeed(speed)));
         } catch (IntentException i) {
+            response.setSuccessful(false);
             response.setResponseText(i.getMessage());
         }
         return response;
+    }
+
+    /**
+     *  Map verbal speed phrase to a number between 0 and 1
+     * */
+    private double resolveAudioSpeed(String speedString) {
+        // if no speed is provided, play at normal speed
+        if (StringUtils.isEmpty(speedString)) {
+            return 1.0;
+        }
+        return 1.0;
     }
 }

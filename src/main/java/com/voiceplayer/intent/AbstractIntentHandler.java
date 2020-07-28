@@ -6,7 +6,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public abstract class AbstractIntentHandler implements IntentHandler {
+public abstract class AbstractIntentHandler<T> implements IntentHandler<T> {
     public Set<String> getMissingRequiredEntities(final IntentActionRequest request) {
         return request.getIntentEntityMapping()
                 .getRequiredEntityNames()
