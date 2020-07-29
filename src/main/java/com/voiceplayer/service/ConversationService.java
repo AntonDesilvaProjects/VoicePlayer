@@ -19,7 +19,7 @@ public class ConversationService {
     }
 
     public VoiceResponse handle(VoiceRequest request) {
-        final IntentResolutionResponse intent = intentResolutionService.resolveIntent(request.toString());
+        final IntentResolutionResponse intent = intentResolutionService.resolveIntent(request.getRequestText());
         IntentActionResponse actionResponse;
         // attempts to action the user intent
         try {

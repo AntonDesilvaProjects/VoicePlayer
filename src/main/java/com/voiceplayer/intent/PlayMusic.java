@@ -1,5 +1,6 @@
 package com.voiceplayer.intent;
 
+import com.voiceplayer.VoicePlayerConstants;
 import com.voiceplayer.common.witai.model.IntentResolutionResponse;
 import com.voiceplayer.common.witai.model.entities.Entity;
 import com.voiceplayer.common.witai.model.entities.SearchQuery;
@@ -10,9 +11,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -48,6 +48,13 @@ public class PlayMusic extends AbstractIntentHandler<PlayMusicResponse> {
 
     private final AudioPlayerService audioPlayerService;
 
+    private final BiFunction<IntentResolutionResponse, String, Entity> GET_FIRST_ENTITY = (intentResolution, name) ->
+            Optional.ofNullable(intentResolution.getEntitiesByNameAndRole(name))
+                    .orElse(new ArrayList<>())
+                    .stream()
+                    .findFirst()
+                    .orElse(null);
+
     public PlayMusic(AudioPlayerService audioPlayerService) {
         this.audioPlayerService = audioPlayerService;
     }
@@ -63,9 +70,9 @@ public class PlayMusic extends AbstractIntentHandler<PlayMusicResponse> {
             final IntentResolutionResponse intentResolution = intentActionRequest.getIntentResolutionResponse();
 
             // we will get the first for each type of entity
-            final SearchQuery audioFileEntity = (SearchQuery) intentResolution.getEntitiesByNameAndRole(AUDIO_SQ_ENTITY_NAME).get(0);
-            final Entity contactEntity = intentResolution.getEntitiesByNameAndRole(ARTIST_CONTACT_ENTITY_NAME).get(0);
-            final Entity artistEntity = intentResolution.getEntitiesByNameAndRole(ARTIST_SQ_ENTITY_NAME).get(0);
+            final SearchQuery audioFileEntity = (SearchQuery) GET_FIRST_ENTITY.apply(intentResolution, AUDIO_SQ_ENTITY_NAME);
+            final Entity contactEntity = GET_FIRST_ENTITY.apply(intentResolution, ARTIST_CONTACT_ENTITY_NAME);
+            final Entity artistEntity = GET_FIRST_ENTITY.apply(intentResolution, ARTIST_SQ_ENTITY_NAME);
 
             // find file
             List<AudioFile> searchResults = audioPlayerService.search(new AudioFileSearchParams()
@@ -87,13 +94,12 @@ public class PlayMusic extends AbstractIntentHandler<PlayMusicResponse> {
 
             // get any additional metadata
             // for speed we have two possible entities
-            final SearchQuery speedSQEntity = (SearchQuery) intentResolution.getEntitiesByNameAndRole(SPEED_SQ_ENTITY_NAME).get(0);
-            final Entity speedEntity =  intentResolution.getEntitiesByNameAndRole(SPEED_ENTITY_NAME).get(0);
+            final SearchQuery speedSQEntity = (SearchQuery) GET_FIRST_ENTITY.apply(intentResolution, SPEED_SQ_ENTITY_NAME);
+            final Entity speedEntity = GET_FIRST_ENTITY.apply(intentResolution, SPEED_ENTITY_NAME);
             final String speed = StringUtils.isEmpty(speedEntity.getValue()) ? speedSQEntity.getValue() : speedEntity.getValue();
 
             response.setSuccessful(true);
-            response.setResponse(
-                    new PlayMusicResponse()
+            response.setResponse(new PlayMusicResponse()
                     .setAudioFile(searchResults.get(0))
                     .setSpeed(resolveAudioSpeed(speed)));
         } catch (IntentException i) {
@@ -104,13 +110,29 @@ public class PlayMusic extends AbstractIntentHandler<PlayMusicResponse> {
     }
 
     /**
-     *  Map verbal speed phrase to a number between 0 and 1
+     *  Map verbal speed phrase to a number
      * */
     private double resolveAudioSpeed(String speedString) {
         // if no speed is provided, play at normal speed
         if (StringUtils.isEmpty(speedString)) {
             return 1.0;
         }
-        return 1.0;
+
+        double speed = 1.0;
+        for (String token: speedString.split(" ")) {
+            final String tokenLower = token.toLowerCase();
+            // handle percentages
+            if (tokenLower.contains("%")) {
+                String percentage = token.substring(0, token.length() -1);
+                if (StringUtils.isNumeric(percentage)) {
+                    speed = Double.parseDouble(percentage) / 100;
+                    break;
+                }
+            } else {
+                // handle numerical phrases
+                speed = Optional.ofNullable(VoicePlayerConstants.SPEED_PHRASE_TO_NUMERICAL_VALUE.get(tokenLower)).orElse(speed);
+            }
+        }
+        return speed;
     }
 }

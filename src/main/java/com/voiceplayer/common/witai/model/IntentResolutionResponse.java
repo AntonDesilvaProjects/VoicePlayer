@@ -70,6 +70,6 @@ public class IntentResolutionResponse {
     }
 
     public List<Entity> getEntitiesByNameAndRole(String entityNameRole) {
-        return new ArrayList<>(entityRoleToEntitiesMap.get(entityNameRole));
+        return entityRoleToEntitiesMap.get(entityNameRole);
     }
 }

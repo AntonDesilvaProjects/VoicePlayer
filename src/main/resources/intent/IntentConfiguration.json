@@ -2,14 +2,14 @@
   {
     "intentName":"play_music",
     "requiredEntityNames":[
-      "wit/search_query:audio"
+      "wit$search_query:audio"
     ],
     "optionalEntityNames":[
-      "wit/contact:contact",
-      "wit/search_query:artist",
-      "wit/search_query:free_text_speed",
-      "wit/search_query:search_query",
-      "wit/number:number",
+      "wit$contact:contact",
+      "wit$search_query:artist",
+      "wit$search_query:free_text_speed",
+      "wit$search_query:search_query",
+      "wit$number:number",
       "speed:speed"
     ]
   }
