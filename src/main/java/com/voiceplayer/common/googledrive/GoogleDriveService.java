@@ -41,7 +41,7 @@ public class GoogleDriveService {
         throw new NotImplementedException();
     }
 
-    public ListResponse list(SearchParams params) {
+    public ListResponse list(final SearchParams params) {
         if (params == null || params.getEntityType() == null) {
             throw new IllegalArgumentException("Entity type required for listing entities!");
         }
@@ -55,6 +55,10 @@ public class GoogleDriveService {
         }
         // build the search request
         return response;
+    }
+
+    public void downloadFile(final String fileId) {
+
     }
 
     private FileListResponse listFiles(SearchParams params) {
@@ -73,7 +77,8 @@ public class GoogleDriveService {
         }
 
         final String url = uriBuilder.build().toUriString();
-        ResponseEntity<FileListResponse> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), FileListResponse.class);
+        ResponseEntity<FileListResponse> response = restTemplate.exchange(url, HttpMethod.GET,
+                new HttpEntity<>(headers), FileListResponse.class);
 
         return response.getBody();
     }

@@ -37,7 +37,7 @@ public class GoogleDriveAudioServiceImpl implements AudioPlayerService {
     }
 
     /**
-     *  Converts the passed in AudioFileSearchParms object to SearchParams that can be used
+     *  Converts the passed in AudioFileSearchParams object to SearchParams that can be used
      *  by Google Drive Service
      * */
     private SearchParams buildSearchParams(AudioFileSearchParams params) {
@@ -57,6 +57,7 @@ public class GoogleDriveAudioServiceImpl implements AudioPlayerService {
         }
         return new SearchParams.Builder()
                 .withQuery(queryBuilder.toString())
+                .withFields("nextPageToken, files(*)")
                 .forEntityType(EntityType.FILE).build();
     }
 }
