@@ -2,10 +2,13 @@ package com.voiceplayer.common.googledrive;
 
 import com.voiceplayer.common.googledrive.model.*;
 import com.voiceplayer.utils.ApplicationUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.LinkedMultiValueMap;
@@ -13,6 +16,13 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Properties;
 
 /**
@@ -27,6 +37,8 @@ public class GoogleDriveService {
     private final String GOOGLE_DRIVE_V3_ENDPOINT;
     private final String GOOGLE_OAUTH2_ENDPOINT;
 
+    private final String FILES_ENDPOINT;
+
     public GoogleDriveService(RestTemplate restTemplate,
                               @Qualifier("credentials") Properties credentials,
                               @Value("${google.drive.api.endpoint}") String googleDriveAPIEndpoint,
@@ -35,6 +47,8 @@ public class GoogleDriveService {
         this.credentials = credentials;
         this.GOOGLE_DRIVE_V3_ENDPOINT = googleDriveAPIEndpoint;
         this.GOOGLE_OAUTH2_ENDPOINT = googleOAuth2Endpoint;
+
+        this.FILES_ENDPOINT = this.GOOGLE_DRIVE_V3_ENDPOINT + "/files";
     }
 
     public File get(String id) {
@@ -57,16 +71,30 @@ public class GoogleDriveService {
         return response;
     }
 
-    public void downloadFile(final String fileId) {
-
+    public InputStreamResource downloadFile(final String fileId) {
+        // need to fetch the file metadata first
+        // make a decision if the file is google type or other
+        final String urlString = UriComponentsBuilder
+                .fromHttpUrl(FILES_ENDPOINT)
+                .path("/" + fileId)
+                .queryParam("alt", "media")
+                .build().toUriString();
+        InputStreamResource resource = null;
+        try {
+            final URL url = new URL(urlString);
+            URLConnection urlConnection = url.openConnection();
+            urlConnection.setRequestProperty("Authorization", "Bearer " + getAccessToken());
+            resource = new InputStreamResource(urlConnection.getInputStream());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return resource;
     }
 
     private FileListResponse listFiles(SearchParams params) {
         final HttpHeaders headers = ApplicationUtils.buildHeaders("Authorization", "Bearer " + getAccessToken());
-        final String apiEndpoint = GOOGLE_DRIVE_V3_ENDPOINT + "/files";
-
         final UriComponentsBuilder uriBuilder = UriComponentsBuilder
-                .fromHttpUrl(apiEndpoint);
+                .fromHttpUrl(FILES_ENDPOINT);
         // add query params
         if (StringUtils.isEmpty(params.getQuery())) {
             throw new IllegalArgumentException("Query must be specified");

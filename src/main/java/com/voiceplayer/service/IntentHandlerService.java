@@ -46,12 +46,12 @@ public class IntentHandlerService {
     /**
      *  Delegates the handling of the passed intent to the appropriate handler and returns the result
      * */
-    public IntentActionResponse handle(final IntentResolutionResponse intentResolutionResponse) {
+    public <T> IntentActionResponse<T> handle(final IntentResolutionResponse intentResolutionResponse) {
         if (CollectionUtils.isEmpty(intentResolutionResponse.getIntents()) || intentResolutionResponse.getIntents().size() > 1) {
             throw new UnexpectedIntentException();
         }
         final String intent = intentResolutionResponse.getIntents().get(0).getName();
-        final IntentHandler handler = intentHandlers.get(intent);
+        final IntentHandler<T> handler = intentHandlers.get(intent);
         if (handler == null) {
             throw new UnexpectedIntentException();
         }

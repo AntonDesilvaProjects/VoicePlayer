@@ -10,9 +10,10 @@ import com.voiceplayer.model.AudioFileSearchParams;
 import com.voiceplayer.service.AudioPlayerService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
+import java.io.File;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +35,16 @@ public class GoogleDriveAudioServiceImpl implements AudioPlayerService {
                 .stream()
                 .map(AudioFile::from)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public File getFile(String fileId) {
+        return null;
+    }
+
+    @Override
+    public InputStreamResource getFileContent(String fileId) {
+        return audioFileDao.getFileContent(fileId);
     }
 
     /**
