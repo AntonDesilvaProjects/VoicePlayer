@@ -1,7 +1,6 @@
 package com.voiceplayer.common.googledrive.model;
 
-import java.sql.Date;
-import java.sql.Time;
+import org.springframework.core.io.InputStreamResource;
 
 public class File {
     private String kind;
@@ -17,6 +16,7 @@ public class File {
     private String createdTime;
     private String webContentLink;
     private String webViewLink;
+    private InputStreamResource fileContent;
 
     public String getKind() {
         return kind;
@@ -120,5 +120,13 @@ public class File {
 
     public void setWebViewLink(String webViewLink) {
         this.webViewLink = webViewLink;
+    }
+
+    public InputStreamResource getFileContent() {
+        return fileContent;
+    }
+
+    public void setFileContent(InputStreamResource fileContent) {
+        this.fileContent = fileContent;
     }
 }

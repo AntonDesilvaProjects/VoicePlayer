@@ -2,9 +2,6 @@ package com.voiceplayer.common.googledrive;
 
 import com.voiceplayer.common.googledrive.model.*;
 import com.voiceplayer.utils.ApplicationUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,14 +10,11 @@ import org.springframework.http.*;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Properties;
@@ -51,8 +45,16 @@ public class GoogleDriveService {
         this.FILES_ENDPOINT = this.GOOGLE_DRIVE_V3_ENDPOINT + "/files";
     }
 
-    public File get(String id) {
-        throw new NotImplementedException();
+    public File get(String fileId) {
+        final HttpHeaders headers = ApplicationUtils.buildHeaders("Authorization", "Bearer " + getAccessToken());
+        final String url = UriComponentsBuilder
+                .fromHttpUrl(FILES_ENDPOINT)
+                .path("/" + fileId)
+                .queryParam("fields", "*") // include all the fields by default
+                .build()
+                .toUriString();
+        ResponseEntity<Void> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), Void.class);
+        return null;
     }
 
     public ListResponse list(final SearchParams params) {
@@ -71,24 +73,28 @@ public class GoogleDriveService {
         return response;
     }
 
-    public InputStreamResource downloadFile(final String fileId) {
+    public File downloadFile(final String fileId) {
         // need to fetch the file metadata first
+        File file = get(fileId);
+        if (file == null) {
+            throw new IllegalArgumentException("Invalid file id");
+        }
         // make a decision if the file is google type or other
         final String urlString = UriComponentsBuilder
                 .fromHttpUrl(FILES_ENDPOINT)
                 .path("/" + fileId)
                 .queryParam("alt", "media")
                 .build().toUriString();
-        InputStreamResource resource = null;
         try {
             final URL url = new URL(urlString);
             URLConnection urlConnection = url.openConnection();
             urlConnection.setRequestProperty("Authorization", "Bearer " + getAccessToken());
-            resource = new InputStreamResource(urlConnection.getInputStream());
+            InputStreamResource resource = new InputStreamResource(urlConnection.getInputStream());
+            file.setFileContent(resource);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Unable to get the file content for file id " + fileId);
         }
-        return resource;
+        return file;
     }
 
     private FileListResponse listFiles(SearchParams params) {
@@ -108,10 +114,11 @@ public class GoogleDriveService {
         ResponseEntity<FileListResponse> response = restTemplate.exchange(url, HttpMethod.GET,
                 new HttpEntity<>(headers), FileListResponse.class);
 
-        return response.getBody();
+        return ApplicationUtils.getResponse(response);
     }
 
     private String getAccessToken() {
+        // TODO: Introduce a short-lived cache over here to minimize calls
         // use credentials to get an access token
         return getAccessToken(credentials.getProperty("google.clientId"),
                 credentials.getProperty("google.clientSecret"),

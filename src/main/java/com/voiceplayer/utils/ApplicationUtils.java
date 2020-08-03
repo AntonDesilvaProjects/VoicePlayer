@@ -1,12 +1,16 @@
 package com.voiceplayer.utils;
 
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
+import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ApplicationUtils {
@@ -43,5 +47,23 @@ public class ApplicationUtils {
             httpHeaders.add(headers[i], headers[i+1]);
         }
         return httpHeaders;
+    }
+
+    public static <T> T getResponse(ResponseEntity<T> responseEntity) {
+        final HttpStatus httpStatus = responseEntity.getStatusCode();
+        T response = responseEntity.getBody();
+        if (!httpStatus.is2xxSuccessful()) {
+            throw new RuntimeException("Unexpected error. Error details: " + responseEntity.getBody());
+        }
+        return response;
+    }
+
+    public static <T> T getResponse(ResponseEntity<T> responseEntity, Function<ResponseEntity<T>, T> errorHandler) {
+        final HttpStatus httpStatus = responseEntity.getStatusCode();
+        T response = responseEntity.getBody();
+        if (!httpStatus.is2xxSuccessful()) {
+            response = errorHandler.apply(responseEntity);
+        }
+        return response;
     }
 }
