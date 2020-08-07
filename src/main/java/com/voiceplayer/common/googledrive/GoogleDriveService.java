@@ -1,6 +1,10 @@
 package com.voiceplayer.common.googledrive;
 
 import com.voiceplayer.common.googledrive.model.*;
+import com.voiceplayer.common.restclient.Request;
+import com.voiceplayer.common.restclient.Response;
+import com.voiceplayer.common.restclient.RestClient;
+import com.voiceplayer.common.restclient.RestTemplateClient;
 import com.voiceplayer.utils.ApplicationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -25,6 +29,7 @@ import java.util.Properties;
  * */
 @Repository
 public class GoogleDriveService {
+    private final RestClient restClient;
 
     private final Properties credentials;
     private final RestTemplate restTemplate;
@@ -37,6 +42,7 @@ public class GoogleDriveService {
                               @Qualifier("credentials") Properties credentials,
                               @Value("${google.drive.api.endpoint}") String googleDriveAPIEndpoint,
                               @Value("${google.oauth2-endpoint}") String googleOAuth2Endpoint) {
+        this.restClient = new RestTemplateClient(restTemplate);
         this.restTemplate = restTemplate;
         this.credentials = credentials;
         this.GOOGLE_DRIVE_V3_ENDPOINT = googleDriveAPIEndpoint;
@@ -53,8 +59,14 @@ public class GoogleDriveService {
                 .queryParam("fields", "*") // include all the fields by default
                 .build()
                 .toUriString();
-        ResponseEntity<Void> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), Void.class);
-        return null;
+
+        Response<File> response = restClient.execute(new Request
+                .Builder<Void, File>(url, HttpMethod.GET, File.class)
+                .errorHandler(error -> { throw (RuntimeException) error.getException();})
+                .headers(headers)
+                .build());
+        ResponseEntity<File> response2 = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), File.class);
+        return response.getResponse();
     }
 
     public ListResponse list(final SearchParams params) {

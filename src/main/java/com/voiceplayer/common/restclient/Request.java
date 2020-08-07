@@ -3,80 +3,106 @@ package com.voiceplayer.common.restclient;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 
-public class Request<T> {
+import java.util.function.Function;
 
+public class Request<T, R> {
     private String url;
     private HttpMethod httpMethod;
     private HttpHeaders headers;
     private T body;
-    private Class<T> clazz;
-    private Response<T> errorHandler;
+    private Class<R> responseType;
+    private Function<Error, Response<R>> errorHandler;
 
-    private Request(Builder<T> builder) {
+    private Request(Builder<T, R> builder) {
         this.url = builder.url;
         this.httpMethod = builder.httpMethod;
         this.headers = builder.headers;
         this.body = builder.body;
-        this.clazz = builder.clazz;
+        this.responseType = builder.responseType;
         this.errorHandler = builder.errorHandler;
     }
 
-    public static class Builder<T> {
+    public static class Builder<T, R> {
 
         private String url;
         private HttpMethod httpMethod;
         private HttpHeaders headers;
         private T body;
-        private Class<T> clazz;
-        private Response<T> errorHandler;
+        private Class<R> responseType;
+        private Function<Error, Response<R>> errorHandler;
 
         // only the URL and method is required
-        Builder(String url, HttpMethod httpMethod) {
+        public Builder(String url, HttpMethod httpMethod, Class<R> responseType) {
             this.url = url;
             this.httpMethod = httpMethod;
+            this.responseType = responseType;
         }
 
-        Builder(String url, HttpMethod httpMethod, HttpHeaders headers, T body, Class<T> clazz, Response<T> errorHandler) {
+        Builder(String url, HttpMethod httpMethod, HttpHeaders headers, T body, Class<R> clazz, Function<Error, Response<R>> errorHandler) {
             this.url = url;
             this.httpMethod = httpMethod;
             this.headers = headers;
             this.body = body;
-            this.clazz = clazz;
+            this.responseType = clazz;
             this.errorHandler = errorHandler;
         }
 
-        public Builder url(String url){
+        public Builder<T, R> url(String url){
             this.url = url;
             return Builder.this;
         }
 
-        public Builder httpMethod(HttpMethod httpMethod){
+        public Builder<T, R> httpMethod(HttpMethod httpMethod){
             this.httpMethod = httpMethod;
             return Builder.this;
         }
 
-        public Builder headers(HttpHeaders headers){
+        public Builder<T, R> headers(HttpHeaders headers){
             this.headers = headers;
             return Builder.this;
         }
 
-        public Builder body(T body){
+        public Builder<T, R> body(T body){
             this.body = body;
             return Builder.this;
         }
 
-        public Builder clazz(Class<T> clazz){
-            this.clazz = clazz;
+        public Builder<T, R> clazz(Class<R> clazz){
+            this.responseType = clazz;
             return Builder.this;
         }
 
-        public Builder errorHandler(Response<T> errorHandler){
+        public Builder<T, R> errorHandler(Function<Error, Response<R>> errorHandler){
             this.errorHandler = errorHandler;
             return Builder.this;
         }
 
-        public Request<T> build() {
-            return new Request<T>(this);
+        public Request<T, R> build() {
+            return new Request<>(this);
         }
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public HttpMethod getHttpMethod() {
+        return httpMethod;
+    }
+
+    public HttpHeaders getHeaders() {
+        return headers;
+    }
+
+    public T getBody() {
+        return body;
+    }
+
+    public Class<R> getResponseType() {
+        return responseType;
+    }
+
+    public Function<Error, Response<R>> getErrorHandler() {
+        return errorHandler;
     }
 }
