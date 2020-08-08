@@ -21,7 +21,7 @@ public class RestTemplateClient implements RestClient {
 
     @Override
     public <T, R> Response<R> execute(Request<T, R> request) {
-        HttpEntity<T> entity = new HttpEntity<>(request.getBody(), request.getHeaders());
+        HttpEntity<T> entity = new HttpEntity<>(request.getBody(), request.getHttpHeaders());
         ResponseEntity<R> responseEntity;
         Response<R> response = null;
         try {

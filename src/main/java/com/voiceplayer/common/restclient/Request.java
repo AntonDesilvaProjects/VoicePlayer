@@ -1,14 +1,20 @@
 package com.voiceplayer.common.restclient;
 
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.Assert;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class Request<T, R> {
     private String url;
     private HttpMethod httpMethod;
-    private HttpHeaders headers;
+    private Multimap<String, String> httpHeaders;
     private T body;
     private Class<R> responseType;
     private Function<Error, Response<R>> errorHandler;
@@ -16,7 +22,7 @@ public class Request<T, R> {
     private Request(Builder<T, R> builder) {
         this.url = builder.url;
         this.httpMethod = builder.httpMethod;
-        this.headers = builder.headers;
+        this.httpHeaders = builder.httpHeaders;
         this.body = builder.body;
         this.responseType = builder.responseType;
         this.errorHandler = builder.errorHandler;
@@ -26,25 +32,18 @@ public class Request<T, R> {
 
         private String url;
         private HttpMethod httpMethod;
-        private HttpHeaders headers;
+        private Multimap<String, String> httpHeaders = ArrayListMultimap.create();
         private T body;
         private Class<R> responseType;
         private Function<Error, Response<R>> errorHandler;
+        private Map<String, String> paramsMap = new HashMap<>();
+
 
         // only the URL and method is required
         public Builder(String url, HttpMethod httpMethod, Class<R> responseType) {
             this.url = url;
             this.httpMethod = httpMethod;
             this.responseType = responseType;
-        }
-
-        Builder(String url, HttpMethod httpMethod, HttpHeaders headers, T body, Class<R> clazz, Function<Error, Response<R>> errorHandler) {
-            this.url = url;
-            this.httpMethod = httpMethod;
-            this.headers = headers;
-            this.body = body;
-            this.responseType = clazz;
-            this.errorHandler = errorHandler;
         }
 
         public Builder<T, R> url(String url){
@@ -54,11 +53,6 @@ public class Request<T, R> {
 
         public Builder<T, R> httpMethod(HttpMethod httpMethod){
             this.httpMethod = httpMethod;
-            return Builder.this;
-        }
-
-        public Builder<T, R> headers(HttpHeaders headers){
-            this.headers = headers;
             return Builder.this;
         }
 
@@ -77,7 +71,33 @@ public class Request<T, R> {
             return Builder.this;
         }
 
+        public Builder<T, R> params(String ...params) {
+            if (params.length == 0 || params.length % 2 != 0) {
+                throw new IllegalArgumentException("Invalid number of param name-value pairs!");
+            }
+            for (int i = 0; i < params.length; i = i + 2) {
+                paramsMap.put(params[i], params[i+1]);
+            }
+            return Builder.this;
+        }
+
+        public Builder<T, R> headers(String ...headers) {
+            if (headers.length == 0 || headers.length % 2 != 0) {
+                throw new IllegalArgumentException("Invalid number of param name-value pairs!");
+            }
+            for (int i = 0; i < headers.length; i = i + 2) {
+                httpHeaders.put(headers[i], headers[i+1]);
+            }
+            return Builder.this;
+        }
+
         public Request<T, R> build() {
+            Assert.isTrue(StringUtils.isNotEmpty(url), "URL must be specified");
+            Assert.notNull(responseType, "Response class type must be specified");
+            Assert.notNull(httpMethod, "HTTP method must be specified");
+
+
+
             return new Request<>(this);
         }
     }
@@ -90,8 +110,8 @@ public class Request<T, R> {
         return httpMethod;
     }
 
-    public HttpHeaders getHeaders() {
-        return headers;
+    public Multimap<String, String> getHttpHeaders() {
+        return httpHeaders;
     }
 
     public T getBody() {
