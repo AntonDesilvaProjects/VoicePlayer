@@ -1,11 +1,11 @@
 package com.voiceplayer.common.restclient;
 
+import com.google.common.collect.Multimap;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 
 public class Response<T> {
     private T response;
-    private HttpHeaders httpHeaders;
+    private Multimap<String, String> httpHeaders;
     private HttpStatus httpStatus;
 
     private Response(Builder<T> builder) {
@@ -16,7 +16,7 @@ public class Response<T> {
 
     public static final class Builder<T> {
         private T response;
-        private HttpHeaders httpHeaders;
+        private Multimap<String, String> httpHeaders;
         private HttpStatus httpStatus;
 
         public Builder() {
@@ -27,7 +27,7 @@ public class Response<T> {
             return this;
         }
 
-        public Builder<T> withHttpHeaders(HttpHeaders val) {
+        public Builder<T> withHttpHeaders(Multimap<String, String> val) {
             httpHeaders = val;
             return this;
         }
@@ -46,7 +46,7 @@ public class Response<T> {
         return response;
     }
 
-    public HttpHeaders getHttpHeaders() {
+    public Multimap<String, String> getHttpHeaders() {
         return httpHeaders;
     }
 

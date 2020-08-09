@@ -2,14 +2,14 @@ package com.voiceplayer.common.restclient;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Assert;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 public class Request<T, R> {
     private String url;
@@ -91,13 +91,25 @@ public class Request<T, R> {
             return Builder.this;
         }
 
+        public Builder<T, R> setBearerToken(String token) {
+            httpHeaders.put("Authorization", "Bearer " + token);
+            return Builder.this;
+        }
+
         public Request<T, R> build() {
+            // do validations
             Assert.isTrue(StringUtils.isNotEmpty(url), "URL must be specified");
-            Assert.notNull(responseType, "Response class type must be specified");
+            Assert.notNull(responseType, "Response class type must be specified. Specify Void.class if no response type");
             Assert.notNull(httpMethod, "HTTP method must be specified");
 
-
-
+            // build the url
+            if (MapUtils.isNotEmpty(paramsMap)) {
+                final UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(url);
+                for (String paramName: paramsMap.keySet()) {
+                    uriBuilder.queryParam(paramName, paramsMap.get(paramName));
+                }
+                this.url = uriBuilder.build().toUriString();
+            }
             return new Request<>(this);
         }
     }

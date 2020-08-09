@@ -1,11 +1,11 @@
 package com.voiceplayer.common.restclient;
 
+import com.google.common.collect.Multimap;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 
 public class Error {
    private HttpStatus httpStatus;
-   private HttpHeaders headers;
+   private Multimap<String, String> headers;
    private String response;
    private Exception exception;
 
@@ -18,11 +18,11 @@ public class Error {
         return this;
     }
 
-    public HttpHeaders getHeaders() {
+    public Multimap<String, String> getHeaders() {
         return headers;
     }
 
-    public Error setHeaders(HttpHeaders headers) {
+    public Error setHeaders(Multimap<String, String> headers) {
         this.headers = headers;
         return this;
     }
