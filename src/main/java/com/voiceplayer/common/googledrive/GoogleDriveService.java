@@ -1,10 +1,7 @@
 package com.voiceplayer.common.googledrive;
 
 import com.voiceplayer.common.googledrive.model.*;
-import com.voiceplayer.common.restclient.HttpMethod;
-import com.voiceplayer.common.restclient.Request;
-import com.voiceplayer.common.restclient.RestClient;
-import com.voiceplayer.common.restclient.RestTemplateClient;
+import com.voiceplayer.common.restclient.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,7 +47,16 @@ public class GoogleDriveService {
     public File get(String fileId) {
         return restClient.execute(new Request
                 .Builder<Void, File>(FILES_ENDPOINT + "/" + fileId, HttpMethod.GET, File.class)
-                .errorHandler(error -> { throw (RuntimeException) error.getException();})
+                .errorHandler(error -> {
+                    if (!HttpStatus.NOT_FOUND.equals(error.getHttpStatus())) {
+                        throw (RuntimeException) error.getException();
+                    }
+                    return new Response.Builder<File>()
+                            .withResponse(null)
+                            .withHttpHeaders(error.getHeaders())
+                            .withHttpStatus(error.getHttpStatus())
+                            .build();
+                })
                 .setBearerToken(getAccessToken())
                 .params("fields", "*")
                 .build())

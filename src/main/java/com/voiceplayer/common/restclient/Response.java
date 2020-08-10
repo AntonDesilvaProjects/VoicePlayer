@@ -1,7 +1,6 @@
 package com.voiceplayer.common.restclient;
 
 import com.google.common.collect.Multimap;
-import org.springframework.http.HttpHeaders;
 
 public class Response<T> {
     private T response;
